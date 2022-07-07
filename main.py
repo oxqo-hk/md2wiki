@@ -4,6 +4,7 @@ import click
 import zipfile
 import logging
 import hashlib
+import sys
 import unicodedata
 import mutator_manager
 from mutators import *
@@ -15,13 +16,16 @@ from urllib import parse
 @click.option('--config', type=click.STRING, required=False, help='설정파일 경로', default="config/default.conf")
 @click.option('--outdir', type=click.STRING, required=False, help='출력파일 위치', default="output")
 def main(target, config, outdir):
+    Log_Format = "%(levelname)s %(asctime)s - %(message)s"
+    logging.basicConfig(stream = sys.stdout, format = Log_Format, level = logging.INFO)
+    logger = logging.getLogger()
     if not os.path.exists(target):
-        logging.error("target file not exists", target)
+        logger.error("target file not exists", target)
         exit(-1)
     #extract zipfile
     md_zip = zipfile.ZipFile(target)
     if md_zip.testzip() != None:
-        logging.error("error openning zip file", target)
+        logger.error("error openning zip file", target)
     base_name=''
     data = ''
     files = dict()

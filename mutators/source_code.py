@@ -7,27 +7,27 @@ class Mutator:
         self.name = "source_code"
         self.files = files
         self.config = config
-
+        self.logger = logging.getLogger()
+        self.logger.info("module initiated: " + self.name)
 
     def do_mutate(self, data):
+        self.logger.info("mutating: " + self.name)
         res = copy.copy(data)
-        max_depth=5 #default
         use_correction = False
-        if self.config is not None and "use_correction" in self.config:
-            use_correction = self.config["use_correction"]
+        if self.config is not None and "use_correction" in self.config and self.config["use_correction"]:
+            for key in self.config["corrections"]:
+                val = self.config["corrections"][key]
+                res = res.replace("\n```" + key, "\n```" + val)
         
         try:
-            rex = "\n```([^\s]+)\n"
-            lang = re.search(rex, res).group(1)
-            if use_correction and lang in self.config["known_language_correction"]:
-                lang = self.config["known_language_correction"][lang]
-            replace = '\n<source lang="%s">\n'%lang
+            rex = "\n\s*```([^\s]+)\n"
+            replace = '\n<source lang="' + r"\1" + '">\n'
             res = re.sub(rex, replace, res)
-            rex = "\n```"
+            rex = "\n\s*```"
             replace = "\n</source>"
             res = re.sub(rex, replace, res)
         except Exception as e:
-            logging.error("error in %s: %s, ignoring this mutator", self.name, e)
+            self.logger.error("error in %s: %s, ignoring this mutator", self.name, e)
             return None
 
         return res
