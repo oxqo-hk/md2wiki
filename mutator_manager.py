@@ -9,14 +9,15 @@ class Mutator_manager:
         self.mutator_list = {}
         self._parse_config(config_file)
         self._get_mutator_set()
+        self.logger = logging.getLogger()
         
     def _parse_config(self, config_file):
         data = {}
         try:
-            with open(config_file) as f:
+            with open(config_file, encoding="UTF8") as f:
                 data = json.load(f)
         except Exception as e:
-            logging.error("parsing json config failed", e)
+            self.logger.error("parsing json config failed", e)
             raise e
         self._config = data
     def _get_mutator_set(self):
@@ -26,7 +27,7 @@ class Mutator_manager:
                 mod=importlib.import_module("mutators." + mut_name, mut_name)
             except Exception as e:
                 print(e)
-                logging.warning("ignoring unrecognized mutator: %s"%mut_name)
+                self.logger.warning("ignoring unrecognized mutator: %s"%mut_name)
                 continue
             if mut_name in self._config['extra_options']:
                 config = self._config['extra_options'][mut_name]
@@ -41,7 +42,7 @@ class Mutator_manager:
             mutator = self.mutator_list[key]
             res = mutator.do_mutate(data)
             if res == None:
-                logging.error("error in mutator: %s", key)
+                self.logger.error("error in mutator: %s", key)
             else:
                 data = res
         
